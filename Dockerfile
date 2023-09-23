@@ -1,43 +1,29 @@
-FROM node:18-alpine AS base
- 
-FROM base AS builder
-RUN apk add --no-cache libc6-compat
-RUN apk update
-
-WORKDIR /app
-RUN npm install turbo -g
-COPY . .
-RUN turbo prune --scope=front --docker
- 
-# Add lockfile and package.json's of isolated subworkspace
-FROM base AS installer
-RUN apk add --no-cache libc6-compat
-RUN apk update
-WORKDIR /app
- 
-# First install the dependencies (as they change less often)
-COPY .gitignore .gitignore
-COPY --from=builder /app/out/json/ .
-COPY --from=builder /app/out/package-lock.json ./package-lock.json
+FROM node:18-alpine as builder
+RUN mkdir /turbo
+WORKDIR /turbo
+ADD . /turbo
 RUN npm install
- 
-# Build the project
-COPY --from=builder /app/out/full/ .
-RUN npm run build --filter=front...
- 
-FROM base AS runner
-WORKDIR /app
- 
-# Don't run production as root
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-USER nextjs
- 
-COPY --from=installer /app/apps/front/next.config.js .
-COPY --from=installer /app/apps/front/package.json .
- 
-COPY --from=installer --chown=nextjs:nodejs /app/apps/front/.next/standalone ./
-COPY --from=installer --chown=nextjs:nodejs /app/apps/front/.next/static ./apps/front/.next/static
-COPY --from=installer --chown=nextjs:nodejs /app/apps/front/public ./apps/front/public
- 
-CMD next start
+RUN npm run build
+
+FROM node:18-alpine
+
+# for front
+COPY --from=builder /turbo/apps/front/package.json /turbo/apps/front/package.json
+COPY --from=builder /turbo/apps/front/.next /turbo/apps/front/.next
+COPY --from=builder /turbo/apps/front/node_modules /turbo/apps/front/node_modules
+COPY --from=builder /turbo/apps/front/public /turbo/apps/front/public
+
+# for server
+COPY --from=builder /turbo/apps/server/package.json /turbo/apps/server/package.json
+COPY --from=builder /turbo/apps/server/dist /turbo/apps/server/dist
+COPY --from=builder /turbo/apps/server/node_modules /turbo/apps/server/node_modules
+
+# for turborepo
+COPY --from=builder /turbo/package.json /turbo/package.json
+COPY --from=builder /turbo/package-lock.json /turbo/package-lock.json
+COPY --from=builder /turbo/turbo.json /turbo/turbo.json
+COPY --from=builder /turbo/node_modules /turbo/node_modules
+COPY --from=builder /turbo/packages /turbo/packages
+
+EXPOSE 3000 5000
+CMD ["node", "run", "start"]

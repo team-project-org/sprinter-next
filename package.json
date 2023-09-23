@@ -7,7 +7,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo lint",
     "test": "turbo test",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "docker-build": "docker build -t dongho1596/next-express .",
+    "docker-run": "docker run --name next-express -d -p 3000:3000 -p 5000:5000 dongho1596/next-express:latest"
   },
   "devDependencies": {
     "@types/jest": "^29.5.4",
