@@ -1,4 +1,4 @@
-# Turborepo kitchen sink starter
+# Turborepo next.js with express.js
 
 This is an official starter Turborepo with multiple meta-frameworks all working in harmony and sharing packages.
 
