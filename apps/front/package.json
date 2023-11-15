@@ -11,12 +11,17 @@
     "start": "next start"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
     "eslint-config-next": "^14.0.2",
     "logger": "*",
     "next": "^14.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "ui": "*"
+    "react-hook-form": "^7.48.2",
+    "ui": "*",
+    "zod": "^3.22.4",
+    "zustand": "^4.4.6"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.4.19",
